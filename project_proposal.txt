@@ -1,0 +1,64 @@
+FAST National University of Computer and Emerging Sciences
+Karachi Campus
+Project Proposal
+Course: Artificial Intelligence / Machine Learning Instructor: [Instructor Name]
+
+Student 1 Name: Roll Number:
+
+Submitted By:
+
+Student 2 Name: Roll Number:
+
+Submission Date: April 10, 2026
+
+
+Artificial Intelligence / Machine Learning
+AI Route Finder and Sentiment Analysis
+
+Project Proposal
+
+Problem Statement
+The project implements two AI components: an informed search algorithm for optimal route finding between locations using real-world map data, and a machine learning model for sentiment analysis on social media posts. The objective is to demonstrate practical applications of A* search in navigation and classification in natural language processing. This addresses real-world needs for efficient routing and understanding public opinion on topics.
+
+Task 1: Informed Search Algorithm
+Selected Algorithm: A*
+Description: A* is an informed search algorithm that finds the shortest path between nodes in a graph. It uses a heuristic function to estimate the cost from a node to the goal, ensuring optimality when the heuristic is admissible. It maintains an open set of nodes to explore, prioritized by f-score (g-score + h-score), and expands the node with the lowest f-score.
+Application:
+- Initial State: Geocoded coordinates of the start location.
+- Goal State: Geocoded coordinates of the destination location.
+- Heuristic Function: Haversine distance between current node and goal, divided by maximum speed (admissible heuristic).
+
+Task 2: Machine Learning Approach
+Type of Task: Classification
+Dataset: Reddit posts retrieved via RSS feed for a user-specified topic. The dataset includes post titles and summaries, with no fixed size (up to 100 posts per query). Features are text-based (title + summary).
+Methodology:
+- Algorithms/Models to be used: TF-IDF Vectorizer for text feature extraction, Logistic Regression for classification into positive, negative, neutral sentiments.
+- Data preprocessing: Concatenate title and summary, remove stop words, vectorize using TF-IDF.
+- Training and testing approach: Model trained on a small labeled dataset of example texts; applied to fetched Reddit data for prediction.
+
+Expected Outcome: For Task 1, a route map with directions, distance, and estimated travel time. For Task 2, an HTML table displaying posts with sentiment labels and scores. Evaluation metrics include path optimality for A*, and accuracy on training data for ML (though not tested on held-out set due to small dataset).
+
+Tools and Technologies
+- Programming Language: Python
+- Libraries: requests (for geocoding and OSM API), folium (for map visualization), heapq (for A* heap), sklearn (for ML pipeline), feedparser (for RSS parsing)
+- Other tools: OSM Overpass API, Nominatim geocoding service, KD-Tree for spatial indexing
+
+Timeline
+
+Task | Proposal Submission | Task 1 Implementation | Task 2 Implementation | Final Report Submission
+-----|----------------------|-----------------------|-----------------------|------------------------
+Expected Completion | April 08, 2026 | April 15, 2026 | April 22, 2026 | April 29, 2026
+
+Expected Challenges
+- API rate limits and timeouts for geocoding and OSM data fetching.
+- Algorithm complexity in A* for large graphs, mitigated by KD-Tree optimization.
+- Limited training data for ML model, potentially affecting generalization.
+- Handling one-way roads and different network types (drive/walk/bike).
+
+Expected Results
+Successful implementation of A* route finder that computes optimal paths with map visualization and turn-by-turn directions. A sentiment analysis tool that classifies Reddit posts and presents results in an interactive HTML format. Demonstrates integration of search algorithms and ML in practical applications.
+
+Instructor Remarks
+
+Signature:</content>
+<parameter name="filePath">c:\Users\Lenovo\Desktop\new\project_proposal.txt
