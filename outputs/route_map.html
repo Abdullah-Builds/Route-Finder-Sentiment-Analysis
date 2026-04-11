@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_68e92b69862bd8730d0d00da06144150 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+    <div style="position:fixed;top:10px;right:10px;z-index:9999;
+      background:rgba(255,255,255,.93);padding:12px 18px;border-radius:10px;
+      box-shadow:0 2px 8px rgba(0,0,0,.25);font-family:sans-serif;
+      font-size:14px;line-height:1.8">
+      <b>🗺 A* Route Finder</b><br>
+      <span style="color:#555">From:</span> javed nihari, karachi<br>
+      <span style="color:#555">To:</span> lucky one mall , karachi<br>
+      <hr style="margin:6px 0">
+      <span style="color:#E63946;font-size:16px;font-weight:bold">
+        📏 2.14 km</span><br>
+      <span style="color:#457B9D">⏱ ~2m 40s</span>
+    </div>
+    
+            <div class="folium-map" id="map_68e92b69862bd8730d0d00da06144150" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_68e92b69862bd8730d0d00da06144150 = L.map(
+                "map_68e92b69862bd8730d0d00da06144150",
+                {
+                    center: [24.930134099999997, 67.08046175],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 13,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_cfb7af33cfeb30c3db926d9bfee1427c = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_cfb7af33cfeb30c3db926d9bfee1427c.addTo(map_68e92b69862bd8730d0d00da06144150);
+        
+    
+            var poly_line_416b465ab9f3725989f1564bf3b9fbf3 = L.polyline(
+                [[24.9282281, 67.0748768], [24.9286709, 67.0754313], [24.9291065, 67.0759768], [24.9295576, 67.0765419], [24.930028, 67.0771309], [24.9304746, 67.0776901], [24.9309069, 67.0782273], [24.9313475, 67.0787834], [24.931801, 67.0793516], [24.9324316, 67.080141], [24.932472, 67.0801197], [24.9325165, 67.0801147], [24.9325599, 67.0801268], [24.932597, 67.0801543], [24.9326234, 67.0801941], [24.932636, 67.0802415], [24.932634, 67.0802869], [24.9326192, 67.0803294], [24.9326016, 67.0803646], [24.9325925, 67.0804778], [24.9325968, 67.0805899], [24.9326143, 67.0807849], [24.9326257, 67.080921], [24.9326837, 67.081614], [24.9328308, 67.0830945], [24.9330094, 67.0845721], [24.9330725, 67.0851115], [24.9330965, 67.0853113], [24.9331593, 67.0853907], [24.9332362, 67.0854467], [24.9334984, 67.0855222], [24.9340018, 67.0854827], [24.9345684, 67.0854314], [24.9356676, 67.0853129], [24.9360753, 67.0852933], [24.9363893, 67.0852632], [24.9364228, 67.0852704], [24.9364496, 67.0852951], [24.936462, 67.08533], [24.9364554, 67.0853736], [24.9364316, 67.0854035], [24.936397, 67.0854162], [24.9361078, 67.085465], [24.9356631, 67.0855253], [24.935095, 67.0855887], [24.9340822, 67.0856861], [24.933403, 67.0857514], [24.9332474, 67.0857765], [24.9325131, 67.0859376], [24.9322148, 67.0860002], [24.9320401, 67.0860467]],
+                {"bubblingMouseEvents": true, "color": "#E63946", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#E63946", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.85, "smoothFactor": 1.0, "stroke": true, "weight": 5}
+            ).addTo(map_68e92b69862bd8730d0d00da06144150);
+        
+    
+            var marker_1b2ef55b02303244ec1f1e87e066969e = L.marker(
+                [24.9282281, 67.0748768],
+                {
+}
+            ).addTo(map_68e92b69862bd8730d0d00da06144150);
+        
+    
+            var icon_d1ab049aff2bf289695093a821a5af66 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "play",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_1d5c13a4fd76f682e3ef9799d968f61d = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_327cb8130edf155a661af7d6fdd1c8d6 = $(`<div id="html_327cb8130edf155a661af7d6fdd1c8d6" style="width: 100.0%; height: 100.0%;">START: javed nihari, karachi</div>`)[0];
+                popup_1d5c13a4fd76f682e3ef9799d968f61d.setContent(html_327cb8130edf155a661af7d6fdd1c8d6);
+            
+        
+
+        marker_1b2ef55b02303244ec1f1e87e066969e.bindPopup(popup_1d5c13a4fd76f682e3ef9799d968f61d)
+        ;
+
+        
+    
+    
+                marker_1b2ef55b02303244ec1f1e87e066969e.setIcon(icon_d1ab049aff2bf289695093a821a5af66);
+            
+    
+            var marker_0745cc91ebd45352ba3889d13dff112a = L.marker(
+                [24.9320401, 67.0860467],
+                {
+}
+            ).addTo(map_68e92b69862bd8730d0d00da06144150);
+        
+    
+            var icon_057a677f192c9978d7948559664c46e2 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "flag",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_53e10f75be552f2c3bba470164b286eb = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_8c928e95c47cff1172f21387bd5f6945 = $(`<div id="html_8c928e95c47cff1172f21387bd5f6945" style="width: 100.0%; height: 100.0%;">END: lucky one mall , karachi</div>`)[0];
+                popup_53e10f75be552f2c3bba470164b286eb.setContent(html_8c928e95c47cff1172f21387bd5f6945);
+            
+        
+
+        marker_0745cc91ebd45352ba3889d13dff112a.bindPopup(popup_53e10f75be552f2c3bba470164b286eb)
+        ;
+
+        
+    
+    
+                marker_0745cc91ebd45352ba3889d13dff112a.setIcon(icon_057a677f192c9978d7948559664c46e2);
+            
+</script>
+</html>
