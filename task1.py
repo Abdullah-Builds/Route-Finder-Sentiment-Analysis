@@ -22,6 +22,12 @@ import os
 import webbrowser
 import requests
 import folium
+import os
+from dotenv import load_dotenv
+load_dotenv();
+API_KEY=os.getenv("TOMTOM_API_KEY");
+#Url for tomtom api
+url = "https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/xml"
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  1. HAVERSINE
@@ -160,6 +166,57 @@ SPEED_KPH = {
     "living_street": 10, "road": 30, "cycleway": 20, "footway": 5,
     "path": 5, "steps": 2, "track": 20, "pedestrian": 5,
 }
+def get_midpoint(lat1, lon1, lat2, lon2):
+    """Return midpoint coordinates for a segment."""
+    return (lat1 + lat2) / 2, (lon1 + lon2) / 2
+# Add at module level
+_traffic_cache = {}  # Simple in-memory cache: "lat,lon" → speed_kph
+
+def get_traffic_speed(lat1, lon1, lat2, lon2, net):
+    """
+    Query TomTom for current speed on a road segment.
+    Falls back to default SPEED_KPH if API fails or is unavailable.
+    """
+    if not API_KEY:
+        print("Could not find api key")
+        return SPEED_KPH.get("residential", 30) / 3.6  # fallback to m/s
+    
+    # Use midpoint for the query
+    qlat, qlon = get_midpoint(lat1, lon1, lat2, lon2)
+    cache_key = f"{qlat:.5f},{qlon:.5f}"
+    
+    if cache_key in _traffic_cache:
+        return _traffic_cache[cache_key] / 3.6  # return m/s
+    
+    try:
+        params = {
+            "point": f"{qlat},{qlon}",
+            "key": API_KEY,
+            "unit": "metric"
+        }
+        resp = requests.get(
+            "https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/xml",
+            params=params,
+            timeout=8
+        )
+        if resp.status_code == 200:
+            # Parse XML response (TomTom returns XML, not JSON)
+            import xml.etree.ElementTree as ET
+            root = ET.fromstring(resp.content)
+            # Namespace handling for TomTom XML
+            ns = {"tt": "http://tomtom.com/schemas/traffic/4.0"}
+            speed_elem = root.find(".//tt:currentSpeed", ns)
+            if speed_elem is not None:
+                speed_kph = float(speed_elem.text)
+                _traffic_cache[cache_key] = speed_kph
+                return speed_kph / 3.6  # convert to m/s
+    except Exception:
+        print("Exception occured")
+        pass  # Silently fall back to default speed
+    
+    # Fallback: use static speed based on highway type
+    # You could pass highway type here for smarter fallback
+    return SPEED_KPH.get("residential", 30) / 3.6
 
 
 def _cache_file(bbox, net):
@@ -224,6 +281,7 @@ def build_graph(osm_data, net="drive"):
     # Index all nodes first in one pass
     for el in osm_data["elements"]:
         if el["type"] == "node":
+            
             nodes[el["id"]] = (el["lat"], el["lon"])
 
     # Build adjacency list from ways
@@ -231,6 +289,7 @@ def build_graph(osm_data, net="drive"):
         if el["type"] != "way":
             continue
         tags = el.get("tags", {})
+       
         hw = tags.get("highway", "")
         if hw not in allowed:
             continue
@@ -238,14 +297,29 @@ def build_graph(osm_data, net="drive"):
         name = tags.get("name", tags.get("ref", hw))
         oneway = (tags.get("oneway", "no") in (
             "yes", "1", "true") and net == "drive")
-        spd = SPEED_KPH.get(hw, 30) / 3.6      # m/s
+        
+        # params = {
+        #     "point": f"{el['bounds']['minlat']},{el['bounds']['minlon']}",
+        #     "key": API_KEY
+            
+            
+        # }
+        # traffic_data = requests.get(url, params= params);
+        # cur_speed = traffic_data["flowSegmentData"]["currentSpeed"];
+        # print(traffic_data);
+        # print("Cur speed is: ", cur_speed);
+        spd = ( 30) / 3.6      # m/s
 
         for i in range(len(wn)-1):
             u, v = wn[i], wn[i+1]
             if u not in nodes or v not in nodes:
                 continue
             dist = haversine(*nodes[u], *nodes[v])
-            cost = dist / spd
+            lat1, lon1 = nodes[u]
+            lat2, lon2 = nodes[v]
+            # spd_mps = get_traffic_speed(lat1, lon1, lat2, lon2, net)
+            spd_mps=30#hardcoded for testing
+            cost = dist / spd_mps
             graph.setdefault(u, []).append((v, cost, dist, name))
             if not oneway:
                 graph.setdefault(v, []).append((u, cost, dist, name))
@@ -263,8 +337,13 @@ class NoPathError(Exception):
     pass
 
 
-def astar(nodes, graph, start_id, goal_id):
+def astar(nodes, graph, start_id, goal_id, record_trace: bool=True):
     """
+     
+    Accepts:
+      nodes  : { id -> (lat, lon) }
+      graph  : { id -> [(neighbour_id, cost_sec, dist_m, road_name)] }
+    
     Hand-coded A* shortest path.
 
     Open set  : binary min-heap  →  (f_score, g_score, counter, node_id)
@@ -276,6 +355,19 @@ def astar(nodes, graph, start_id, goal_id):
     Heuristic h(n) = haversine(n, goal) / max_speed
     Admissible (never overestimates) → A* returns optimal path.
     """
+    frames = []
+    touched_nodes = {}
+    touched_edges = []
+    step = 0;
+    def _touch_node(nid):
+        if nid not in touched_nodes:
+            lat, lon = nodes[nid];
+            touched_nodes[nid] = {"lat": lat, "lon": lon};
+        
+    def _add_frame(frame:dict):
+        frame["step"] = step;
+        frames.append(frame);
+    
     if start_id == goal_id:
         return [start_id], 0.0, 0.0, 0
 
@@ -291,34 +383,104 @@ def astar(nodes, graph, start_id, goal_id):
     closed = set()
     heap = []
     ctr = 0                       # tie-break counter
+    trace = []
 
     heapq.heappush(heap, (h(start_id), 0.0, ctr, start_id))
     ctr += 1
     explored = 0
+    if record_trace:
+        _touch_node(start_id)
+        _touch_node(goal_id)
 
     while heap:
         f, g, _, cur = heapq.heappop(heap)
+        
 
         # Lazy deletion — this entry is stale if we've already found a cheaper g
         if g > g_score.get(cur, math.inf):
             continue
 
         explored += 1
+        if record_trace:
+            step += 1
+            _touch_node(cur)
+            _add_frame({
+                "type":      "node_expanded",
+                "node":      cur,
+                "g":         round(g, 3),
+                "h":         round(h(cur), 3),
+                "f":         round(f, 3),
+                "open_size": len(heap),
+            })
+            
 
         if cur == goal_id:
+            if record_trace:
+                step += 1
+                _add_frame({
+                    "type":       "goal_reached",
+                    "node":       cur,
+                    "g":          round(g, 3),
+                })
             break
 
         closed.add(cur)
 
-        for nb, edge_cost, edge_dist, road_name in graph.get(cur, []):
+        for edge in graph.get(cur, []):
+            if len(edge) == 5:
+                nb, edge_cost, edge_dist, road_name, hw = edge
+            else:
+                nb, edge_cost, edge_dist, road_name = edge
+                hw = "road"
             if nb in closed:
+                if record_trace:
+                    step += 1;
+                    _add_frame({
+                        "type": "neighbour skipped",
+                        "from": cur,
+                        "to": nb,
+                        "reason": "closed"
+                    })
                 continue
+            
             tg = g + edge_cost
-            if tg < g_score.get(nb, math.inf):
+            improved = tg < g_score.get(nb, math.inf)
+            if improved:
+                h_nb = h(nb)
+                
                 g_score[nb] = tg
                 came_from[nb] = (cur, road_name, edge_dist)
                 heapq.heappush(heap, (tg + h(nb), tg, ctr, nb))
                 ctr += 1
+            if record_trace:
+                eu, ev = min(cur, nb), max(cur, nb)
+                touched_edges.append({
+                    "u":         cur,
+                    "v":         nb,
+                    "dist_m":    round(edge_dist, 2),
+                    "road_name": road_name,
+                    "hw":        hw,
+                })
+                if improved:
+                    _add_frame({
+                        "type":      "neighbor_relaxed",
+                        "from":      cur,
+                        "to":        nb,
+                        "g":         round(tg, 3),
+                        "h":         round(h_nb, 3),
+                        "f":         round(tg + h_nb, 3),
+                        "dist_m":    round(edge_dist, 2),
+                        "road_name": road_name,
+                        "improved":  True,
+                    })
+                else:
+                    _add_frame({
+                        "type":      "neighbor_skipped",
+                        "from":      cur,
+                        "to":        nb,
+                        "reason":    "not_improved",
+                    })
+                
     else:
         raise NoPathError("No path found between locations.")
 
@@ -332,7 +494,84 @@ def astar(nodes, graph, start_id, goal_id):
 
     total_dist = sum(came_from[v][2] for v in path[1:])
     total_time = g_score[goal_id]
-    return path, total_dist, total_time, explored
+    trace = None
+    if record_trace:
+        step += 1
+        _add_frame({
+            "type": "path_reconstructed",
+            "path": path,
+        })
+        seen_edges = set()
+        unique_edges = []
+        for e in touched_edges:
+            key = (min(e["u"], e["v"]), max(e["u"], e["v"]))
+            if key not in seen_edges:
+                seen_edges.add(key)
+                unique_edges.append(e)
+                
+        trace = {
+            "meta": {
+                "start_id":       start_id,
+                "goal_id":        goal_id,
+                "start_lat":      nodes[start_id][0],
+                "start_lon":      nodes[start_id][1],
+                "goal_lat":       nodes[goal_id][0],
+                "goal_lon":       nodes[goal_id][1],
+                "total_dist_m":   round(total_dist, 2),
+                "total_time_s":   round(total_time, 2),
+                "nodes_explored": explored,
+                "path_length":    len(path),
+                "total_frames":   len(frames),
+            },
+            "graph_nodes":  touched_nodes,
+            "graph_edges":  unique_edges,
+            "path_nodes":   path,
+            "frames":       frames,
+        }
+    
+    return path, total_dist, total_time, explored,trace
+
+def _empty_trace(nodes, start_id, goal_id, path, dist, time_s):
+    """Return a minimal valid trace when start == goal."""
+    lat, lon = nodes[start_id]
+    return {
+        "meta": {
+            "start_id": start_id, "goal_id": goal_id,
+            "start_lat": lat, "start_lon": lon,
+            "goal_lat": lat,  "goal_lon": lon,
+            "total_dist_m": 0, "total_time_s": 0,
+            "nodes_explored": 0, "path_length": 1, "total_frames": 0,
+        },
+        "graph_nodes": {start_id: {"lat": lat, "lon": lon}},
+        "graph_edges": [],
+        "path_nodes":  [start_id],
+        "frames":      [],
+    }
+    
+def save_trace(trace: dict, path: str = "astar_trace.json"):
+    """
+    Write the trace dict to a JSON file.
+ 
+    Node ids are Python ints (which are valid JSON).
+    The graph_nodes dict uses string keys because JSON only allows string keys.
+    We do the int→str conversion here so downstream JS can do
+        const node = trace.graph_nodes[nodeId.toString()]
+    """
+    # Convert int node-id keys to strings for JSON spec compliance
+    serialisable = dict(trace)
+    serialisable["graph_nodes"] = {
+        str(k): v for k, v in trace["graph_nodes"].items()
+    }
+    # Convert node ids inside frames to plain ints (already are, just be safe)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(serialisable, f, separators=(",", ":"))  # compact, no whitespace
+ 
+    size_kb = os.path.getsize(path) / 1024
+    print(f"   ✓ Trace saved → {path}  ({size_kb:.1f} KB,  "
+          f"{trace['meta']['total_frames']:,} frames,  "
+          f"{len(trace['graph_nodes']):,} nodes,  "
+          f"{len(trace['graph_edges']):,} edges)")
+    return path
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  7. BBOX
@@ -418,6 +657,8 @@ def main():
     net = input("Network type [drive] : ").strip().lower() or "drive"
     if net not in ("drive", "walk", "bike"):
         net = "drive"
+    record = input("Record A* trace for visualization? [y/N] : ").strip().lower()
+    record_trace = record in ("y", "yes")
 
     # Geocode
     print("\n📍 Geocoding …")
@@ -463,19 +704,21 @@ def main():
     print("\n🔍 Running A* …")
     t2 = time.time()
     try:
-        path, total_dist, total_time, explored = astar(
-            nodes, graph, start_id, goal_id)
+        path, total_dist, total_time, explored,trace = astar(
+            nodes, graph, start_id, goal_id,record_trace)
     except NoPathError as e:
         print(f"\n❌ {e}")
         return
     elapsed = time.time() - t2
-
     mins, secs = int(total_time//60), int(total_time % 60)
     print(f"   ✓ Finished in     {elapsed:.3f}s")
     print(f"   ✓ Nodes explored  {explored:,}")
     print(f"   ✓ Path length     {len(path)} nodes")
     print(f"   ✓ Distance        {total_dist/1000:.2f} km")
     print(f"   ✓ Travel time     ~{mins}m {secs:02d}s")
+    if record_trace and trace:
+        print("\n💾 Saving trace …")
+        save_trace(trace, "astar_trace.json")
 
     print_directions(path, graph, nodes)
 
@@ -490,3 +733,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+#Dolmen Mall Clifton Karachi
+#Jinnah International Airport Karachi
