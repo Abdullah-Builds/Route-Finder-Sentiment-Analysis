@@ -38,7 +38,7 @@ A dual-component AI project from **FAST-NUCES Karachi** that demonstrates practi
 
 ---
 
-## 🚀 Getting Started
+## � Getting Started
 
 ### Prerequisites
 
@@ -50,18 +50,47 @@ A dual-component AI project from **FAST-NUCES Karachi** that demonstrates practi
 ```bash
 git clone https://github.com/Abdullah-Builds/Route-Finder-Sentiment-Analysis.
 cd Route-Finder-Sentiment-Analysis.
-pip install requests folium scikit-learn feedparser python-dotenv
+pip install -r requirements.txt
+```
+
+### `requirements.txt` contents
+
+```
+# Task 1: A* Route Finder
+requests==2.32.3
+folium==0.19.5
+python-dotenv==1.0.1
+
+# Task 2: Reddit Sentiment Analysis
+feedparser==6.0.11
+scikit-learn==1.6.1
 ```
 
 ### Optional: TomTom Traffic API
 
-For live traffic-aware edge weights, create a `.env` file in the project root:
+For live traffic-aware edge weights, set up your `.env` file:
 
-```env
-TOMTOM_API_KEY=your_api_key_here
-```
+1. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Open `.env` and fill in your key:
+   ```env
+   TOMTOM_API_KEY=your_api_key_here
+   ```
 
 Get a free key at [developer.tomtom.com](https://developer.tomtom.com). Without it, the router falls back to static speed defaults — routes still work correctly.
+
+### `.env.example` contents
+
+```
+# TomTom Traffic Flow API key (used in task1.py for live traffic speeds)
+# Get yours free at: https://developer.tomtom.com/
+# If left empty the route finder falls back to static speed estimates.
+TOMTOM_API_KEY=your_tomtom_api_key_here
+```
+
+> The `.env` file is **git-ignored**. Never commit real secrets. The `.env.example` template is tracked instead.
 
 ---
 
@@ -125,12 +154,15 @@ Enter topic: artificial intelligence
 ├── astar_visualizer.html  # Browser-based step-by-step A* animation
 ├── astar_trace.json       # Generated trace data (created after running task1.py)
 ├── route_map.html         # Generated route map (created after running task1.py)
+├── requirements.txt       # Python dependencies
+├── .env.example           # Environment variable template (tracked in git)
+├── .env                   # Your local secrets — not committed (add your own)
 ├── osm_cache/             # Cached OSM Overpass responses (auto-created)
 ├── graph_cache/           # Cached graph files (auto-created)
 ├── cache/                 # General request cache (auto-created)
 ├── planning.md            # Architecture notes and ML extension ideas
 ├── project_proposal.txt   # Original project proposal (FAST-NUCES)
-└── .env                   # API keys — not committed (add your own)
+└── AI_Project_Proposal.pdf # Full project proposal document
 ```
 
 ---

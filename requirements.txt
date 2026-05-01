@@ -1,0 +1,8 @@
+# ─── Task 1: A* Route Finder ───────────────────────────────────────────────
+requests==2.32.3          # HTTP calls to Nominatim, Overpass API & TomTom
+folium==0.19.5            # Interactive map rendering (HTML output)
+python-dotenv==1.0.1      # Load TOMTOM_API_KEY from .env
+
+# ─── Task 2: Reddit Sentiment Analysis ─────────────────────────────────────
+feedparser==6.0.11        # Parse Reddit RSS feeds
+scikit-learn==1.6.1       # TF-IDF vectorizer + Logistic Regression pipeline
