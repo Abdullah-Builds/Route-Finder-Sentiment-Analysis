@@ -223,7 +223,7 @@ Please keep pull requests focused — one feature or fix per PR.
 
 Developed as an AI/ML course project at **FAST National University of Computer and Emerging Sciences, Karachi Campus** (April 2026).
 
-**Maintainer:** [Abdullah-Builds](https://github.com/Abdullah-Builds)
+**Developers:** [Muhammad Abdullah Khan](https://github.com/Abdullah-Builds) and [Abdul Moiz Hussain](https://github.com/amh1k)
 
 ---
 
