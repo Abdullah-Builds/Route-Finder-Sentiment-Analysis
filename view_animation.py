@@ -5,8 +5,10 @@ import os
 import threading
 import time
 import sys
+from dotenv import load_dotenv
+load_dotenv()
 
-PORT = 8000
+PORT = int(os.getenv("PORT", 8000)) 
 FILE = "astar_visualizer.html"
 
 def start_server():
